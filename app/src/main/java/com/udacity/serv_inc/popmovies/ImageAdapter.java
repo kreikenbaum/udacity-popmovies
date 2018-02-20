@@ -1,22 +1,36 @@
 package com.udacity.serv_inc.popmovies;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
 
+import info.movito.themoviedbapi.TmdbApi;
+import info.movito.themoviedbapi.TmdbMovies;
+
 /**
  * Created on 2/20/18.
  * Taken from https://developer.android.com/guide/topics/ui/layout/gridview.html
  */
-
 public class ImageAdapter extends BaseAdapter {
     private Context mContext;
 
-    public ImageAdapter(Context c) {
-        mContext = c;
+    private static final String API_KEY = "d71d2f344d3e61ffc32b11784f3e26eb";
+
+    public ImageAdapter(Context context) {
+        mContext = context;
+        populateMovies(context);
+    }
+
+    // todo: background
+    private void populateMovies(Context context) {
+        TmdbMovies movies = new TmdbApi(API_KEY).getMovies();
+        SharedPreferences sp = PreferenceManager
+            .getDefaultSharedPreferences(context);
     }
 
     public int getCount() {
