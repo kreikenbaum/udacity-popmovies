@@ -1,80 +1,70 @@
 package com.udacity.serv_inc.popmovies;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
 
-import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.TmdbMovies;
+import com.squareup.picasso.Picasso;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created on 2/20/18.
  * Taken from https://developer.android.com/guide/topics/ui/layout/gridview.html
  */
 public class ImageAdapter extends BaseAdapter {
-    private Context mContext;
+    public static final String TAG = ImageAdapter.class.getSimpleName();
+    private Context context;
 
-    private static final String API_KEY = "d71d2f344d3e61ffc32b11784f3e26eb";
+    private List<String> backdrops;
 
-    public ImageAdapter(Context context) {
-        mContext = context;
-        populateMovies(context);
-    }
-
-    // todo: background
-    private void populateMovies(Context context) {
-        TmdbMovies movies = new TmdbApi(API_KEY).getMovies();
-        SharedPreferences sp = PreferenceManager
-            .getDefaultSharedPreferences(context);
+    public ImageAdapter(Context context, List<String> backdrops) {
+        this.context = context;
+        this.backdrops = backdrops;
     }
 
     public int getCount() {
-        return mThumbIds.length;
+        return backdrops.size();
     }
 
     public Object getItem(int position) {
-        return null;
+        return backdrops.get(position);
     }
-
+    
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         if (convertView == null) {
-            // if it's not recycled, initialize some attributes
-            imageView = new ImageView(mContext);
+            imageView = new ImageView(context);
 //            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setScaleType(ImageView.ScaleType.FIT_START);
+            imageView.setAdjustViewBounds(true);
 //            imageView.setPadding(8, 8, 8, 8);
         } else {
             imageView = (ImageView) convertView;
         }
 
-        imageView.setImageResource(mThumbIds[position]);
+        // possibly refactor this so that movieSource returns URLs
+        String backdropId = backdrops.get(position);
+        Uri backdropUri = Utils.posterUri(backdropId);
+        Picasso.with(context).load(backdropUri).placeholder(R.mipmap.ic_launcher).into(imageView);
+        Log.i(TAG, "Picasso loaded " + backdropUri + " into " + position);
         return imageView;
     }
 
-    // references to our images
-    private Integer[] mThumbIds = {
-        R.drawable.sample_2, R.drawable.sample_3,
-        R.drawable.sample_4, R.drawable.sample_5,
-        R.drawable.sample_6, R.drawable.sample_7,
-        R.drawable.sample_0, R.drawable.sample_1,
-        R.drawable.sample_2, R.drawable.sample_3,
-        R.drawable.sample_4, R.drawable.sample_5,
-        R.drawable.sample_6, R.drawable.sample_7,
-        R.drawable.sample_0, R.drawable.sample_1,
-        R.drawable.sample_2, R.drawable.sample_3,
-        R.drawable.sample_4, R.drawable.sample_5,
-        R.drawable.sample_6, R.drawable.sample_7
-    };
+    public void updateList(List<String> newBackdrops) {
+        this.backdrops.clear();
+        this.backdrops.addAll(newBackdrops);
+        Log.i(TAG, Arrays.toString(this.backdrops.toArray()));
+        this.notifyDataSetChanged();
+    }
 }
 
