@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private ImageAdapter imageAdapter;
     private MovieSource movieSource;
     private GridView gridview;
-    static final String INDEX = "MOVIE_INDEX";
+    static final String ID = "MOVIE_ID";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                intent.putExtra(INDEX, position);
+                intent.putExtra(ID, movieSource.getMovie(position).getId());
                 startActivity(intent);
             }
         });

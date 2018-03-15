@@ -41,7 +41,7 @@ public class DetailActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         this.movie = MovieSource.get()
-            .getMovie(getIntent().getExtras().getInt(MainActivity.INDEX));
+            .getMovieById(getIntent().getExtras().getInt(MainActivity.ID));
         // populate UI
         Picasso.with(this).load(Utils.posterUri(movie.getPosterPath())).into(binding.ivPoster);
         binding.tvDescription.setText(movie.getOverview());

@@ -64,6 +64,10 @@ public class MovieSource extends Observable
         return out;
     }
 
+    public MovieDb getMovieById(int id) {
+        return movieDetails.get(id);
+    }
+
     void setMovies(List<MovieDb> movies) {
         if (isPopular()) {
             this.popularMovies = movies;
