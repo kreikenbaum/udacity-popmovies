@@ -3,8 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/settings_item"
         android:onClick="startSettings"
-        android:title="Settings"
+        android:title="@string/title_activity_settings"
         app:showAsAction="ifRoom" />
 </menu>

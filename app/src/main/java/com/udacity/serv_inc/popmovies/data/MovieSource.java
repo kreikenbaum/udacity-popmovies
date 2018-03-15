@@ -1,17 +1,13 @@
 package com.udacity.serv_inc.popmovies.data;
 
-import android.accounts.NetworkErrorException;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
-import android.util.SparseIntArray;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 
 import info.movito.themoviedbapi.TmdbApi;
@@ -42,7 +38,7 @@ public class MovieSource extends Observable
 
     TmdbMovies tmdb;
 
-    public List<MovieDb> getMovies() {
+    private List<MovieDb> getMovies() {
         if (isPopular()) {
             return popularMovies;
         } else {
@@ -52,7 +48,7 @@ public class MovieSource extends Observable
 
     private List<MovieDb> popularMovies;
     private List<MovieDb> topMovies;
-    private SparseArray<MovieDb> movieDetails;
+    private final SparseArray<MovieDb> movieDetails;
     private boolean popular;
 
     /** @return movie at position <code>position</code> */
@@ -77,7 +73,7 @@ public class MovieSource extends Observable
         this.updateListener();
     }
 
-    void updateListener() {
+    private void updateListener() {
         this.setChanged();
         this.notifyObservers();
     }
@@ -85,7 +81,7 @@ public class MovieSource extends Observable
     /** @return list of poster file names */
     public List<String> getPosterPaths() {
         if ( getMovies() == null ) {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
         List<String> out = new ArrayList<>();
         for ( MovieDb movie: getMovies() ) {
@@ -143,7 +139,7 @@ class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
         source = movieSources[0];
         if (source.tmdb == null) {
             try {
-                source.tmdb = new TmdbApi(source.API_KEY).getMovies();
+                source.tmdb = new TmdbApi(MovieSource.API_KEY).getMovies();
             } catch (MovieDbException e) {
                 e.printStackTrace();
                 return null;
@@ -165,8 +161,7 @@ class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
     protected void onPostExecute(List<MovieDb> movieDbs) {
         source.setMovies(movieDbs);
         for (MovieDb movie: movieDbs) {
-            new DownloadDetailTask()
-                .execute(new Pair<MovieSource, Integer>(source, movie.getId()));
+            new DownloadDetailTask().execute(new Pair<>(source, movie.getId()));
         }
     }
 }

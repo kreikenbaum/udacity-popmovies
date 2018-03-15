@@ -14,16 +14,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
- * Created by web on 3/1/18.
- */
+ * Static helper methods
+ * */
 
-public class Utils {
+class Utils {
     private static final String MOVIE_BASE = "http://image.tmdb.org/t/p/";
     private static final String IMAGE_SIZE = "w185";
     private static final Uri POSTER = Uri.parse(MOVIE_BASE + IMAGE_SIZE);
@@ -59,7 +56,7 @@ public class Utils {
     }
 
     private static final String FAVS = "FAVS";
-    private static Type listType = new TypeToken<List<Integer>>() {}.getType();
+    private static final Type listType = new TypeToken<List<Integer>>() {}.getType();
     private static ArrayList<Integer> getFavs(Context context) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         Gson gson = new Gson();

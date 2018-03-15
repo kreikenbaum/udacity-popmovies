@@ -13,8 +13,9 @@
             android:id="@+id/iv_title"
             android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:background="@color/colorPrimaryDark">
-        </ImageView>
+            android:background="@color/colorPrimaryDark"
+            android:contentDescription="@string/background_color_desc"
+            />
 
         <TextView
             android:id="@+id/tv_title"
@@ -51,7 +52,9 @@
             app:layout_constraintDimensionRatio="H,1:1.5"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/guideline"
-            app:layout_constraintTop_toBottomOf="@id/iv_title" />
+            app:layout_constraintTop_toBottomOf="@id/iv_title"
+            android:contentDescription="@string/desc_poster"
+            />
 
         <TextView
             android:id="@+id/tv_year"

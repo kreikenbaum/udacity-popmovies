@@ -17,11 +17,11 @@ import java.util.List;
  * Created on 2/20/18.
  * Taken from https://developer.android.com/guide/topics/ui/layout/gridview.html
  */
-public class ImageAdapter extends BaseAdapter {
-    public static final String TAG = ImageAdapter.class.getSimpleName();
-    private Context context;
+class ImageAdapter extends BaseAdapter {
+    private static final String TAG = ImageAdapter.class.getSimpleName();
+    private final Context context;
 
-    private List<String> backdrops;
+    private final List<String> backdrops;
 
     public ImageAdapter(Context context, List<String> backdrops) {
         this.context = context;

@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.preference.PreferenceFragment;
 
 /**
- * Created by web on 2/21/18.
- */
+ * Created from template, just load prefs
+ * */
 
 public class SettingsFragment extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
