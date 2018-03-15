@@ -17,9 +17,7 @@ import info.movito.themoviedbapi.model.MovieDb;
 
 public class DetailActivity extends AppCompatActivity {
     private ActivityDetailBinding binding;
-
-    private boolean isFavorite;
-    private int movieIndex;
+    private MovieDb movie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,9 +28,9 @@ public class DetailActivity extends AppCompatActivity {
         binding.buttonFavorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    Utils.addFavorite(DetailActivity.this, movieIndex);
+                    Utils.addFavorite(DetailActivity.this, movie.getId());
                 } else {
-                    Utils.removeFavorite(DetailActivity.this, movieIndex);
+                    Utils.removeFavorite(DetailActivity.this, movie.getId());
                 }
             }
         });
@@ -42,8 +40,8 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        this.movieIndex = getIntent().getExtras().getInt(Intent.EXTRA_INDEX);
-        MovieDb movie = MovieSource.get().getMovie(this.movieIndex);
+        this.movie = MovieSource.get()
+            .getMovie(getIntent().getExtras().getInt(MainActivity.INDEX));
         // populate UI
         Picasso.with(this).load(Utils.posterUri(movie.getPosterPath())).into(binding.ivPoster);
         binding.tvDescription.setText(movie.getOverview());
@@ -51,9 +49,8 @@ public class DetailActivity extends AppCompatActivity {
         binding.tvRating.setText(Utils.formatRating(movie.getVoteAverage()));
         binding.tvTitle.setText(movie.getTitle());
         binding.tvYear.setText(Utils.formatYear(movie.getReleaseDate()));
-        binding.buttonFavorite.setChecked(Utils.isFavorite(this, movieIndex));
+        binding.buttonFavorite.setChecked(Utils.isFavorite(this, movie.getId()));
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -65,5 +62,4 @@ public class DetailActivity extends AppCompatActivity {
     public void startSettings(MenuItem item) {
         startActivity(new Intent( this, SettingsActivity.class));
     }
-
 }

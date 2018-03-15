@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.udacity.serv_inc.popmovies.data.MovieSource;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -29,16 +32,20 @@ public class MainActivity extends AppCompatActivity implements Observer {
     private ImageAdapter imageAdapter;
     private MovieSource movieSource;
     private GridView gridview;
+    static final String INDEX = "MOVIE_INDEX";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        gridview = (GridView) findViewById(R.id.gridview);
+
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         movieSource = MovieSource.get(sp.getBoolean("show_popular", true));
         movieSource.addObserver(this);
-        gridview = (GridView) findViewById(R.id.gridview);
+        sp.registerOnSharedPreferenceChangeListener(movieSource);
+
         imageAdapter = new ImageAdapter(this, movieSource.getPosterPaths());
         gridview.setAdapter(imageAdapter);
 
@@ -46,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements Observer {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
-                intent.putExtra(Intent.EXTRA_INDEX, position);
+                intent.putExtra(INDEX, position);
                 startActivity(intent);
             }
         });

@@ -1,4 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- refactor to R.bool -->
 
     <CheckBoxPreference
         android:defaultValue="true"

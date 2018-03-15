@@ -1,5 +1,7 @@
 package com.udacity.serv_inc.popmovies.data;
 
+import android.accounts.NetworkErrorException;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
@@ -15,6 +17,7 @@ import java.util.Observable;
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.TmdbMovies;
 import info.movito.themoviedbapi.model.MovieDb;
+import info.movito.themoviedbapi.tools.MovieDbException;
 
 /**
 - Tasks
@@ -29,7 +32,8 @@ import info.movito.themoviedbapi.model.MovieDb;
 */
 
 
-public class MovieSource extends Observable {
+public class MovieSource extends Observable
+     implements SharedPreferences.OnSharedPreferenceChangeListener {
     static final String TAG = MovieSource.class.getSimpleName();
 
     static final String API_KEY = "d71d2f344d3e61ffc32b11784f3e26eb";
@@ -39,16 +43,21 @@ public class MovieSource extends Observable {
     TmdbMovies tmdb;
 
     public List<MovieDb> getMovies() {
-        return movies;
+        if (isPopular()) {
+            return popularMovies;
+        } else {
+            return topMovies;
+        }
     }
 
-    private List<MovieDb> movies;
+    private List<MovieDb> popularMovies;
+    private List<MovieDb> topMovies;
     private SparseArray<MovieDb> movieDetails;
     private boolean popular;
 
     /** @return movie at position <code>position</code> */
     public MovieDb getMovie(int position) {
-        MovieDb out = movies.get(position);
+        MovieDb out = getMovies().get(position);
         if ( movieDetails.get(out.getId()) != null ) {
             return movieDetails.get(out.getId());
         }
@@ -56,18 +65,26 @@ public class MovieSource extends Observable {
     }
 
     void setMovies(List<MovieDb> movies) {
-        this.movies = movies;
+        if (isPopular()) {
+            this.popularMovies = movies;
+        } else {
+            this.topMovies = movies;
+        }
+        this.updateListener();
+    }
+
+    void updateListener() {
         this.setChanged();
         this.notifyObservers();
     }
 
     /** @return list of poster file names */
     public List<String> getPosterPaths() {
-        if ( movies == null ) {
+        if ( getMovies() == null ) {
             return new ArrayList<String>();
         }
         List<String> out = new ArrayList<>();
-        for ( MovieDb movie: movies ) {
+        for ( MovieDb movie: getMovies() ) {
             out.add(movie.getPosterPath());
         }
         return out;
@@ -97,6 +114,19 @@ public class MovieSource extends Observable {
     public void setMovie(int movieId, MovieDb movieDb) {
         movieDetails.append(movieId, movieDb);
     }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
+                                          String key) {
+        if (key.equals("show_popular")) {
+            this.popular = sharedPreferences.getBoolean("show_popular", true);
+            if ( getMovies() == null ) {
+                new DownloadMovieTask().execute(this);
+            } else {
+                this.updateListener();
+            }
+        }
+    }
 }
 
 class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
@@ -104,9 +134,16 @@ class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
     private MovieSource source;
     @Override
     protected List<MovieDb> doInBackground(MovieSource... movieSources) {
+        // android.os.Debug.waitForDebugger();
+
         source = movieSources[0];
         if (source.tmdb == null) {
-            source.tmdb = new TmdbApi(source.API_KEY).getMovies();
+            try {
+                source.tmdb = new TmdbApi(source.API_KEY).getMovies();
+            } catch (MovieDbException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
         List<MovieDb> movies;
@@ -123,8 +160,9 @@ class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
     @Override
     protected void onPostExecute(List<MovieDb> movieDbs) {
         source.setMovies(movieDbs);
-        for (MovieDb movie: source.getMovies()) {
-            new DownloadDetailTask().execute(new Pair<MovieSource, Integer>(source, movie.getId()));
+        for (MovieDb movie: movieDbs) {
+            new DownloadDetailTask()
+                .execute(new Pair<MovieSource, Integer>(source, movie.getId()));
         }
     }
 }
