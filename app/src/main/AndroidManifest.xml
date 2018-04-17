@@ -23,6 +23,12 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity android:name=".DetailActivity"></activity>
+        <provider
+            android:name="com.udacity.serv_inc.popmovies.data.MovieProvider"
+            android:authorities="com.udacity.serv_inc.popmovies"
+            android:exported="false"/>
+
     </application>
+
 
 </manifest>
