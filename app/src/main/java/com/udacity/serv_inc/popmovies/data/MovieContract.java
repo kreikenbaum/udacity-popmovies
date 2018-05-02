@@ -3,8 +3,6 @@ package com.udacity.serv_inc.popmovies.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-import com.example.android.sunshine.utilities.SunshineDateUtils;
-
 public class MovieContract {
 
     public static final String CONTENT_AUTHORITY = "com.udacity.serv_inc.popmovies";
@@ -22,5 +20,6 @@ public class MovieContract {
 
         public static final String TABLE_NAME = "movie";
         public static final String TITLE = "title";
+        public static final String POSTERPATH = "poster";
     }
 }

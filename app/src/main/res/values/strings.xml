@@ -6,10 +6,17 @@
 
     <string name="show_popular_movies">Show most popular movies</string>
     <string name="show_top_rated_movies">Show top rated movies</string>
+    <string name="show_favorite_movies">Show your favorites</string>
+
     <string name="movie_sort_order">Movie sort ordering</string>
     <string name="favorite">MARK AS&#10;FAVORITE</string>
     <string name="favorited">Favorited!</string>
     <string name="background_color_desc">background color</string>
     <string name="desc_poster">movie poster</string>
+    <string name="display_type">display_type</string>
+    <string name="popular">popular</string>
+    <string name="trailer_header">trailer header</string>
+    <string name="trailers_title">Trailers:</string>
+    <string name="reviews_title">Reviews:</string>
 
 </resources>

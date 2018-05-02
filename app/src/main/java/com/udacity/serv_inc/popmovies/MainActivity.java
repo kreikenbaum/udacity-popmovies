@@ -33,7 +33,8 @@ public class MainActivity extends AppCompatActivity implements Observer {
         GridView gridview = findViewById(R.id.gridview);
 
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        movieSource = MovieSource.get(sp.getBoolean("show_popular", true));
+        movieSource = MovieSource.get(this, sp.getString(MovieSource.KEY,
+                        getResources().getString(R.string.popular)));
         movieSource.addObserver(this);
         sp.registerOnSharedPreferenceChangeListener(movieSource);
 

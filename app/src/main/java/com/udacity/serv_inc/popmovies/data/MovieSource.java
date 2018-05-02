@@ -1,10 +1,13 @@
 package com.udacity.serv_inc.popmovies.data;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
+
+import com.udacity.serv_inc.popmovies.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +15,11 @@ import java.util.Observable;
 
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.TmdbMovies;
+import info.movito.themoviedbapi.TmdbMovies.MovieMethod;
 import info.movito.themoviedbapi.model.MovieDb;
 import info.movito.themoviedbapi.tools.MovieDbException;
+
+import static com.udacity.serv_inc.popmovies.data.MovieSource.STATE_TOP;
 
 /**
 - Tasks
@@ -30,26 +36,62 @@ import info.movito.themoviedbapi.tools.MovieDbException;
 
 public class MovieSource extends Observable
      implements SharedPreferences.OnSharedPreferenceChangeListener {
+    // copied from resources
+    public static final String KEY = "display_type";
+    static final String STATE_POPULAR = "popular";
+    static final String STATE_TOP = "top";
+    static final String STATE_FAVORITES = "favorites";
+    
     static final String TAG = MovieSource.class.getSimpleName();
-
     static final String API_KEY = "d71d2f344d3e61ffc32b11784f3e26eb";
-
+    
     private static MovieSource instance;
 
     TmdbMovies tmdb;
+    Context context;
 
-    private List<MovieDb> getMovies() {
-        if (isPopular()) {
-            return popularMovies;
-        } else {
-            return topMovies;
-        }
+    public String getStatus() {
+        return status;
     }
 
+    private String status;
     private List<MovieDb> popularMovies;
     private List<MovieDb> topMovies;
-    private final SparseArray<MovieDb> movieDetails;
-    private boolean popular;
+    private List<MovieDb> favoriteMovies;
+    private SparseArray<MovieDb> movieDetails;
+
+    
+    private MovieSource(Context context, String status) {
+        this.status = status;
+        this.movieDetails = new SparseArray<>();
+        this.context = context.getApplicationContext();
+        new DownloadMovieTask().execute(this);
+    }
+    /** @return existing or newly created MovieSource */
+    public static synchronized MovieSource get(Context context, String status) {
+        if (instance == null) {
+            instance = new MovieSource(context, status);
+        }
+        return instance;
+    }
+    /** @return existing MovieSource or null */
+    public static MovieSource getExisting() {
+        return instance;
+    }
+
+
+    private List<MovieDb> getMovies() {
+        switch (status) {
+            case STATE_POPULAR:
+                return popularMovies;
+            case STATE_TOP:
+                return topMovies;
+            case STATE_FAVORITES:
+                return favoriteMovies;
+            default:
+                throw new UnsupportedOperationException("status " + status);
+        }
+    }
 
     /** @return movie at position <code>position</code> */
     public MovieDb getMovie(int position) {
@@ -65,10 +107,18 @@ public class MovieSource extends Observable
     }
 
     void setMovies(List<MovieDb> movies) {
-        if (isPopular()) {
-            this.popularMovies = movies;
-        } else {
-            this.topMovies = movies;
+        switch (status) {
+            case STATE_POPULAR:
+                this.popularMovies = movies;
+                break;
+            case STATE_TOP:
+                this.topMovies = movies;
+                break;
+            case STATE_FAVORITES:
+                this.favoriteMovies = movies;
+                break;
+            default:
+                throw new UnsupportedOperationException("status " + status);
         }
         this.updateListener();
     }
@@ -90,27 +140,6 @@ public class MovieSource extends Observable
         return out;
     }
 
-    boolean isPopular() {
-        return popular;
-    }
-
-    private MovieSource(boolean popular) {
-        this.popular = popular;
-        this.movieDetails = new SparseArray<>();
-        new DownloadMovieTask().execute(this);
-    }
-    /** @return existing or newly created MovieSource */
-    public static synchronized MovieSource get(boolean popular) {
-        if (instance == null) {
-            instance = new MovieSource(popular);
-        }
-        return instance;
-    }
-    /** @return existing MovieSource or null */
-    public static MovieSource get() {
-        return instance;
-    }
-
     public void setMovie(int movieId, MovieDb movieDb) {
         movieDetails.append(movieId, movieDb);
     }
@@ -118,8 +147,8 @@ public class MovieSource extends Observable
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
                                           String key) {
-        if (key.equals("show_popular")) {
-            this.popular = sharedPreferences.getBoolean("show_popular", true);
+        if (KEY.equals(key)) {
+            this.status = sharedPreferences.getString(KEY, null);
             if ( getMovies() == null ) {
                 new DownloadMovieTask().execute(this);
             } else {
@@ -147,18 +176,30 @@ class DownloadMovieTask extends AsyncTask<MovieSource, Void, List<MovieDb>> {
         }
 
         List<MovieDb> movies;
-        if ( source.isPopular() ) {
-            movies = source.tmdb.getPopularMovies("", 0).getResults();
-        } else {
-            movies = source.tmdb.getTopRatedMovies("", 0).getResults();
+        switch (source.getStatus()) {
+            case MovieSource.STATE_POPULAR:
+                movies = source.tmdb.getPopularMovies("", 0).getResults();
+                break;
+            case MovieSource.STATE_TOP:
+                movies = source.tmdb.getTopRatedMovies("", 0).getResults();
+                break;
+            case MovieSource.STATE_FAVORITES:
+                movies = Utils.getFavoriteMovies(source.context);
+                break;
+            default:
+                throw new UnsupportedOperationException("status " + source.getStatus());
         }
-        Log.i(MovieSource.TAG, "images loaded");
+        Log.i(MovieSource.TAG, "movies loaded");
 
         return movies;
     }
 
     @Override
     protected void onPostExecute(List<MovieDb> movieDbs) {
+        if ( movieDbs == null ) {
+            Log.e(MovieSource.TAG, "failed to load");
+            return;
+        }
         source.setMovies(movieDbs);
         for (MovieDb movie: movieDbs) {
             new DownloadDetailTask().execute(new Pair<>(source, movie.getId()));
@@ -174,7 +215,9 @@ class DownloadDetailTask extends AsyncTask<Pair<MovieSource, Integer>, Void, Mov
     protected MovieDb doInBackground(Pair<MovieSource, Integer>[] pairs) {
         source = pairs[0].first;
         movieId = pairs[0].second;
-        return source.tmdb.getMovie(movieId, "");
+        return source.tmdb.getMovie(
+                movieId, "",
+                TmdbMovies.MovieMethod.videos, TmdbMovies.MovieMethod.reviews);
     }
 
     @Override

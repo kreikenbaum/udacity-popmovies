@@ -1,12 +1,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- refactor to R.bool -->
 
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="show_popular"
-        android:summaryOn="@string/show_popular_movies"
-        android:summaryOff="@string/show_top_rated_movies"
+    <ListPreference
+        android:defaultValue="@string/popular"
+        android:key="@string/display_type"
         android:title="@string/movie_sort_order"
-        />
+        android:entries="@array/entries"
+        android:entryValues="@array/entry_values"
+    />
 
 </PreferenceScreen>

@@ -4,8 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.example.android.sunshine.data.MovieContract.MovieEntry;
-
 /**
  * Manages a local database for movie data, adapted from Sunshine S12.04
  */
@@ -23,10 +21,9 @@ public class MovieDbHelper extends SQLiteOpenHelper {
 
         final String SQL_CREATE_MOVIE_TABLE =
             "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + " (" +
-
             MovieContract.MovieEntry._ID   + " INTEGER PRIMARY KEY, " +
-
-            MovieContract.MovieEntry.TITLE + " TEXT );";
+            MovieContract.MovieEntry.TITLE + " TEXT NOT NULL, " +
+            MovieContract.MovieEntry.POSTERPATH + " TEXT NOT NULL );";
 
         sqLiteDatabase.execSQL(SQL_CREATE_MOVIE_TABLE);
     }

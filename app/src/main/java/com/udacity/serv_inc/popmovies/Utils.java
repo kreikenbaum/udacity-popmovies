@@ -1,29 +1,32 @@
 package com.udacity.serv_inc.popmovies;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.udacity.serv_inc.popmovies.data.MovieContract;
+import com.udacity.serv_inc.popmovies.data.SimpleMovieDb;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.List;
+
+import info.movito.themoviedbapi.model.MovieDb;
 
 /**
  * Static helper methods
  * */
 
-class Utils {
+public class Utils {
     private static final String MOVIE_BASE = "http://image.tmdb.org/t/p/";
     private static final String IMAGE_SIZE = "w185";
     private static final Uri POSTER = Uri.parse(MOVIE_BASE + IMAGE_SIZE);
+    private static final String[] PROJECTION_ARGUMENTS = new String[]{
+            MovieContract.MovieEntry._ID
+    };
 
     // todo: avoid failure by this or other
     // credits: https://stackoverflow.com/questions/1560788/
@@ -55,31 +58,62 @@ class Utils {
         return String.format("%dmin", rating);
     }
 
-    private static final String FAVS = "FAVS";
-    private static final Type listType = new TypeToken<List<Integer>>() {}.getType();
     private static ArrayList<Integer> getFavs(Context context) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        Gson gson = new Gson();
-        return gson.fromJson(sp.getString(FAVS, "[]"), listType);
+        ArrayList<Integer> out = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI, PROJECTION_ARGUMENTS,
+                null, null, null);
+        if ( cursor != null ) {
+            while(cursor.moveToNext()) {
+                int newid = cursor.getInt(0);
+                out.add(newid);
+            }
+        }
+        return out;
     }
-    private static void setFavs(Context context, ArrayList<Integer> favs) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor edit = sp.edit();
-        Gson gson = new Gson();
-        edit.putString(FAVS, gson.toJson(favs, listType));
-        edit.apply();
+    public static boolean isFavorite(Context context, MovieDb movie) {
+        //        return getFavs(context).indexOf(movie.getId()) > -1;
+        for ( MovieDb favMovie: getFavoriteMovies(context) ) {
+            if ( favMovie.getId() == movie.getId() ) {
+                return true;
+            }
+        }
+        return false;
     }
-    public static boolean isFavorite(Context context, int movieId) {
-        return getFavs(context).contains(movieId);
+    public static void addFavorite(Context context, MovieDb movie) {
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry._ID, movie.getId());
+        cv.put(MovieContract.MovieEntry.TITLE, movie.getTitle());
+        cv.put(MovieContract.MovieEntry.POSTERPATH, movie.getPosterPath());
+        context.getContentResolver().insert(
+                MovieContract.MovieEntry.CONTENT_URI,
+                cv);
     }
-    public static void addFavorite(Context context, int movieId) {
-        ArrayList<Integer> favs = getFavs(context);
-        favs.add(movieId);
-        setFavs(context, favs);
+    public static void removeFavorite(Context context, MovieDb movie) {
+        String[] selectionArgs = new String[]{
+            String.valueOf(movie.getId())
+        };
+        context.getContentResolver().delete(
+               MovieContract.MovieEntry.CONTENT_URI,
+               MovieContract.MovieEntry._ID + " = ?",
+               selectionArgs);
     }
-    public static void removeFavorite(Context context, int movieId) {
-        ArrayList<Integer> favs = getFavs(context);
-        favs.remove(favs.indexOf(movieId));
-        setFavs(context, favs);
+
+    public static ArrayList<MovieDb> getFavoriteMovies(Context context) {
+        ArrayList<MovieDb> out = new ArrayList<>();
+        Cursor cursor = context.getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
+        if ( cursor != null ) {
+            while(cursor.moveToNext()) {
+                SimpleMovieDb simpleMovieDb = new SimpleMovieDb(
+                        cursor.getInt(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry._ID)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.TITLE)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(MovieContract.MovieEntry.POSTERPATH))
+                );
+                out.add(simpleMovieDb);
+            }
+            cursor.close();
+        }
+        return out;
     }
 }

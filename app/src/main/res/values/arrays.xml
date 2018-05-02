@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="entries">
+        <item name="popular">@string/show_popular_movies</item>
+        <item name="top">@string/show_top_rated_movies</item>
+        <item name="favorites">@string/show_favorite_movies</item>
+    </array>
+    <array name="entry_values">
+        <item name="popular">popular</item>
+        <item name="top">top</item>
+        <item name="favorites">favorites</item>
+    </array>
+</resources>
