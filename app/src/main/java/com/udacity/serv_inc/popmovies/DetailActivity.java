@@ -27,6 +27,7 @@ public class DetailActivity extends AppCompatActivity {
     private ActivityDetailBinding binding;
     private MovieDb movie;
     private LinearLayout layout;
+    private boolean initialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,9 @@ public class DetailActivity extends AppCompatActivity {
 
         binding.buttonFavorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (!initialized) {
+                    return;
+                }
                 if (isChecked) {
                     Utils.addFavorite(DetailActivity.this, movie);
                 } else {
@@ -49,6 +53,7 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        initialized = false;
         this.movie = MovieSource.getExisting()
             .getMovieById(getIntent().getExtras().getInt(MainActivity.ID));
         // populate UI
@@ -60,6 +65,7 @@ public class DetailActivity extends AppCompatActivity {
         binding.tvYear.setText(Utils.formatYear(movie.getReleaseDate()));
         binding.buttonFavorite.setChecked(Utils.isFavorite(this, movie));
         insertVideosAndReviews();
+        initialized = true;
     }
 
     private void insertVideosAndReviews() {
