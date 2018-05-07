@@ -93,7 +93,8 @@ public class DetailActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // add onclicklistener: launch youtube-app: https://stackoverflow.com/a/7115040/1587329
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://" + video.getKey()));
+                Intent intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("vnd.youtube://" + video.getKey()));
                 startActivity(intent);
             }
         });

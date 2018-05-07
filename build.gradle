@@ -29,5 +29,6 @@ task zip(type: Zip) {
     from '.'
     archiveName 'submission.zip'
     dependsOn 'clean'
-    destinationDir = file("..")
+    destinationDir = file('..')
+    excludes = ['**/gradle.properties']
 }
